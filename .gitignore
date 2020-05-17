@@ -1,0 +1,5 @@
+backend/.env
+backend/node_modules
+backend/client_secret.json
+
+frontend/node_modules
