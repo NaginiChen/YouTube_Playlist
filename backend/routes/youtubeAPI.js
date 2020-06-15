@@ -1,14 +1,8 @@
 'use strict';
+var express = require('express');
+var router = express.Router();
 var { google } = require('googleapis');
 require("dotenv").config();
-const express = require('express');
-const router = express.Router();
-
-const playlistName = 'SUPER SMASH BROS. ULTIMATE';
-const user = 'alpharadd';
-
-// getUserPlaylist(user, playlistName);
-getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'Nostalgia');
 
 function getUserPlaylist(username, playlist) {
     var service = google.youtube('v3');
@@ -19,23 +13,22 @@ function getUserPlaylist(username, playlist) {
     }, function (err, response) {
         if (err) {
             console.log('The API returned an error: ' + err);
-            return;
+            return "error";
         }
         var channels = response.data.items;
         if (channels.length == 0) {
-            console.log('No channel found???');
+            console.log('No channel found');
+            return 'No channel found';
         }
         else {
-            console.log('This channel\'s ID is %s. Its title is \'%s\'',
-                channels[0].id,
-                channels[0].snippet.title);
+            console.log('This channel\'s ID is %s. Its title is \'%s\'', channels[0].id, channels[0].snippet.title);
 
-            getPlaylist(channels[0].id, playlist);
+            return getPlaylist(channels[0].id, playlist, "");
         }
     });
 }
 
-function getPlaylist(channelId, playlist) {
+function getPlaylist(channelId, playlist, token, callback) {
     var service = google.youtube('v3');
     service.playlists.list({
         auth: process.env.KEY,
@@ -45,35 +38,30 @@ function getPlaylist(channelId, playlist) {
     }, function (err, response) {
         if (err) {
             console.log('The API returned an error: ' + err);
-            return;
+            return "error";
         }
         var channels = response.data.items;
         if (channels.length == 0) {
-            console.log('No channel found?');
+            console.log('No channel found');
+            return 'No channel found';
         }
         else {
             var lst = channels;
             for (var i = 0; i < lst.length; i++) {
                 if (lst[i].snippet.title == playlist) {
 
-                    getPlaylistItems(lst[i].id, "", function (samePlaylist, token1, err) {
-                        if (!err && token1 != undefined) {
-                            getPlaylistItems(samePlaylist, token1, function (samePlaylist, token2, err) {
-                                if (!err && token2 != undefined) {
-                                }
-                            })
-                        }
+                    getPlaylistItems(lst[i].id, token, function (playlist, nextToken, err) {
+                        callback(playlist, nextToken);
                     });
-
                 }
             }
         }
     });
 }
 
-
 function getPlaylistItems(playlist, token, callback) {
     var service = google.youtube('v3');
+    var returnPlaylist = "Playlist: ";
 
     service.playlistItems.list({
         auth: process.env.KEY,
@@ -93,13 +81,32 @@ function getPlaylistItems(playlist, token, callback) {
         }
         else {
             for (var i = 0; i < playlistData.length; i++) {
-                console.log(playlistData[i].snippet.position + ": " + playlistData[i].snippet.title);
+                // console.log(playlistData[i].snippet.position + ": " + playlistData[i].snippet.title);
+                returnPlaylist += playlistData[i].snippet.position + ": " + playlistData[i].snippet.title;
             }
-            callback(playlist, response.data.nextPageToken, false);
+            callback(returnPlaylist, response.data.nextPageToken, false);
         }
-
-        // console.log(response.data.nextPageToken);
-
     });
 }
 
+// const playlistName = 'SUPER SMASH BROS. ULTIMATE';
+// const user = 'alpharadd';
+// getUserPlaylist(user, playlistName);
+
+// getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'General Meme');
+
+router.get('/', function (req, res, next) {
+
+    getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'General Meme', "", function (playlist, token) {
+        res.setHeader('Content-Type', 'application/json');
+        res.json( JSON.stringify({ 
+            playlist: playlist,
+            token: token
+        }) );
+    });
+
+
+});
+
+
+module.exports = router;
