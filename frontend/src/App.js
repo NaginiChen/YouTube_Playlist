@@ -16,15 +16,15 @@ export default class App extends Component {
   }
 
   callApi() {
-    axios({
-      method: 'post',
-      url: 'http://localhost:9000/youtubeAPI',
+    axios.post({
+      url: 'http://localhost:9000/youtubeAPI/',
       data: {
         token: this.state.token,
         channel: this.state.channel,
         playlist: this.state.playlist
       }
     }).then(res => console.log(res))
+      .catch(error => console.log(error))
 
   }
 

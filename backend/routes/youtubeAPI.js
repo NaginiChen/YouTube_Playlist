@@ -1,8 +1,13 @@
 'use strict';
+
 var express = require('express');
 var router = express.Router();
+var app = express();
 var { google } = require('googleapis');
+var bodyParser = require('body-parser');
 require("dotenv").config();
+
+app.use(bodyParser.urlencoded({ extended: false }));
 
 function getUserPlaylist(username, playlist) {
     var service = google.youtube('v3');
@@ -95,18 +100,23 @@ function getPlaylistItems(playlist, token, callback) {
 
 // getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'General Meme');
 
-router.get('/', function (req, res, next) {
 
-    getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'General Meme', "", function (playlist, token) {
-        res.setHeader('Content-Type', 'application/json');
-        res.json( JSON.stringify({ 
-            playlist: playlist,
-            token: token
-        }) );
-    });
-
-
+app.post('handle',(req, res) => {
+    console.log(req.body);
 });
+
+
+// router.post('/', function (req, res, next) {
+//     console.log(res);
+
+//     // getPlaylist('UCv6gPmMs8k2wgW9r3DUlSxg', 'General Meme', "", function (playlist, token) {
+//     //     res.setHeader('Content-Type', 'application/json');
+//     //     res.json( JSON.stringify({ 
+//     //         playlist: playlist,
+//     //         token: token
+//     //     }) );
+//     // });
+// });
 
 
 module.exports = router;
